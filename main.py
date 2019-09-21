@@ -18,3 +18,4 @@ for gist in cursor:
     print('Comments: ', gist['comments'])
     print('Comments Url: ', gist['comments_url'])
     print('=' * 60)
+
