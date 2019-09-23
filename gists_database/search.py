@@ -3,7 +3,7 @@ from .models import Gist
 
 def search_gists(db_connection, **kwargs):
 
-    query = 'SELECT * FROM gists;'
+    query = 'SELECT * FROM gists'
 
     if kwargs:
         query = build_query(kwargs.items())
@@ -17,21 +17,29 @@ def search_gists(db_connection, **kwargs):
 
 def build_query(kwargs_items):
 
-    query = 'SELECT * FROM gists WHERE'
+    OPERATORS = {'gt': '>',
+                 'gte': '>=',
+                 'lt': '<',
+                 'lte': '<=',
+                 'equal': '='
+                 }
 
+    query = 'SELECT * FROM gists'
     where_clause = ''
+    operator = 'equal'
+    conjunction = 'AND'
 
     for key, value in kwargs_items:
-        if key == 'created_at':
-            value = format_created_at(value)
 
-        where_clause += f" {key} = '{value}'"
+        if 'created_at' in key or 'updated_at' in key:
+            value = value.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    where_clause.replace(" ", " AND ")
+            if len(key.rsplit('__')) > 1:
+                operator = key.split('__')[-1]
+                key = key.split('__')[0]
+
+        where_clause += f" {conjunction} {key} {OPERATORS[operator]} '{value}'"
+
+    where_clause = where_clause.replace('AND', 'WHERE', 1)
 
     return query + where_clause
-
-
-def format_created_at(datetime):
-    return datetime.strftime('%Y-%m-%dT%H:%M:%SZ')
-
